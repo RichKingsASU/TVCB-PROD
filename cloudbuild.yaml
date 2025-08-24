@@ -41,3 +41,4 @@ images:
 
 options:
   logging: CLOUD_LOGGING_ONLY
+  serviceAccount: 'projects/tvcb-prod/serviceAccounts/744213536304@cloudbuild.gserviceaccount.com'
