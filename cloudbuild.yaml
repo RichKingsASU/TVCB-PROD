@@ -1,0 +1,40 @@
+substitutions:
+  _REGION: us-central1
+  _REPO: tvcb-prod
+
+steps:
+- name: gcr.io/cloud-builders/docker
+  dir: src/webhook-handler
+  args: ['build','-t','${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/webhook-handler:$COMMIT_SHA','.']
+
+- name: gcr.io/cloud-builders/docker
+  dir: src/trade-executor
+  args: ['build','-t','${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/trade-executor:$COMMIT_SHA','.']
+
+- name: gcr.io/google.com/cloudsdktool/cloud-sdk
+  entrypoint: bash
+  args:
+  - -lc
+  - >
+    gcloud run deploy webhook-handler
+    --image ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/webhook-handler:$COMMIT_SHA
+    --region ${_REGION}
+    --allow-unauthenticated
+    --service-account ts-webhook-sa @$PROJECT_ID.iam.gserviceaccount.com
+    --update-secrets=TV_SECRET=tv-secret:latest
+    --set-env-vars=PROJECT_ID=$PROJECT_ID,TOPIC_NAME=trading-signals
+
+- name: gcr.io/google.com/cloudsdktool/cloud-sdk
+  entrypoint: bash
+  args:
+  - -lc
+  - >
+    gcloud run deploy trade-executor
+    --image ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/trade-executor:$COMMIT_SHA
+    --region ${_REGION}
+    --no-allow-unauthenticated
+    --service-account ts-executor-sa @$PROJECT_ID.iam.gserviceaccount.com
+    --set-env-vars=PROJECT_ID=$PROJECT_ID,TRADING_MODE=PREVIEW
+images:
+- ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/webhook-handler:$COMMIT_SHA
+- ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/trade-executor:$COMMIT_SHA

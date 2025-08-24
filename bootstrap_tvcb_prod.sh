@@ -49,7 +49,7 @@ steps:
     --image ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/webhook-handler:$COMMIT_SHA
     --region ${_REGION}
     --allow-unauthenticated
-    --service-account ts-webhook-sa@$PROJECT_ID.iam.gserviceaccount.com
+    --service-account ts-webhook-sa @$PROJECT_ID.iam.gserviceaccount.com
     --update-secrets=TV_SECRET=tv-secret:latest
     --set-env-vars=PROJECT_ID=$PROJECT_ID,TOPIC_NAME=trading-signals
 
@@ -62,7 +62,7 @@ steps:
     --image ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/trade-executor:$COMMIT_SHA
     --region ${_REGION}
     --no-allow-unauthenticated
-    --service-account ts-executor-sa@$PROJECT_ID.iam.gserviceaccount.com
+    --service-account ts-executor-sa @$PROJECT_ID.iam.gserviceaccount.com
     --set-env-vars=PROJECT_ID=$PROJECT_ID,TRADING_MODE=PREVIEW
 images:
 - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/webhook-handler:$COMMIT_SHA
@@ -77,8 +77,8 @@ jobs:
   pip-audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout @.codeoss/extensions/anysphere.pyright-1.1.327-universal/dist/typeshed-fallback/stubs/netaddr/netaddr/strategy/ipv4.pyi
+      - uses: actions/setup-python @v5
         with: { python-version: '3.11' }
       - run: pip install pip-audit
       - run: |
@@ -116,11 +116,11 @@ topic_path = publisher.topic_path(PROJECT_ID, TOPIC_NAME)
 
 app = Flask(__name__)
 
-@app.get("/healthz")
+ @app.get("/healthz")
 def health():
     return {"status":"ok"}, 200
 
-@app.post("/webhook/tradingview")
+ @app.post("/webhook/tradingview")
 def tv_webhook():
     # TradingView posts JSON we define in the alert (no official HMAC header)
     # Use a shared secret sent in a header you control.
@@ -177,11 +177,11 @@ TRADING_MODE = os.environ.get("TRADING_MODE","PREVIEW").upper()
 # RESTClient reads COINBASE_API_KEY / COINBASE_API_SECRET from env
 cb = RESTClient()
 
-@app.get("/healthz")
+ @app.get("/healthz")
 def health():
     return {"status":"ok","mode":TRADING_MODE}, 200
 
-@app.post("/pubsub")
+ @app.post("/pubsub")
 def pubsub_push():
     # Pub/Sub push: envelope with base64 data
     envelope = request.get_json(force=True, silent=True) or {}
@@ -244,7 +244,7 @@ cat > infrastructure/scripts/grant-godmode.sh <<'EOF'
 set -euo pipefail
 ORG_ID="$1"; BILLING_ID="$2"; GROUP_EMAIL="$3"
 EXPIRY=$(date -u -d "+4 hours" +"%Y-%m-%dT%H:%M:%SZ")
-COND="--condition=expression=\"request.time < timestamp('${EXPIRY}')\",title=\"TimeBound\",description=\"Expires ${EXPIRY}\""
+COND="--condition=expression="request.time < timestamp('${EXPIRY}')",title="TimeBound",description="Expires ${EXPIRY}""
 for ROLE in roles/resourcemanager.organizationAdmin roles/resourcemanager.folderAdmin roles/resourcemanager.projectCreator roles/iam.securityAdmin roles/iam.organizationRoleAdmin roles/iam.roleAdmin roles/iam.serviceAccountAdmin roles/iam.serviceAccountKeyAdmin roles/serviceusage.serviceUsageAdmin roles/orgpolicy.policyAdmin roles/logging.admin roles/monitoring.admin ; do
   gcloud organizations add-iam-policy-binding "$ORG_ID" --member="group:${GROUP_EMAIL}" --role="$ROLE" $COND
 done
@@ -294,12 +294,7 @@ REGION=us-central1
 
 # Create authenticated push subscription to Cloud Run trade-executor
 EXEC_URL=$(gcloud run services describe trade-executor --region=$REGION --format='value(status.url)')
-gcloud pubsub subscriptions create trading-signals-sub \
-  --topic=trading-signals \
-  --push-endpoint="${EXEC_URL}/pubsub" \
-  --push-auth-service-account="ts-executor-sa@${PROJECT_ID}.iam.gserviceaccount.com" \
-  --dead-letter-topic=projects/${PROJECT_ID}/topics/trading-signals-dlq \
-  --max-delivery-attempts=5 || true
+gcloud pubsub subscriptions create trading-signals-sub   --topic=trading-signals   --push-endpoint="${EXEC_URL}/pubsub"   --push-auth-service-account="ts-executor-sa @${PROJECT_ID}.iam.gserviceaccount.com"   --dead-letter-topic=projects/${PROJECT_ID}/topics/trading-signals-dlq   --max-delivery-attempts=5 || true
 echo "[ok] Pub/Sub push subscription configured."
 EOF
 

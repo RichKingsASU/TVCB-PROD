@@ -1,0 +1,13 @@
+name: security-scan
+on: [push]
+jobs:
+  pip-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout @.codeoss/extensions/anysphere.pyright-1.1.327-universal/dist/typeshed-fallback/stubs/netaddr/netaddr/strategy/ipv4.pyi
+      - uses: actions/setup-python @v5
+        with: { python-version: '3.11' }
+      - run: pip install pip-audit
+      - run: |
+          pip-audit -r src/webhook-handler/requirements.txt || true
+          pip-audit -r src/trade-executor/requirements.txt || true
