@@ -10,15 +10,15 @@ topic_path = publisher.topic_path(PROJECT_ID, TOPIC_NAME)
 
 app = Flask(__name__)
 
- @app.get("/healthz")
+@app.get("/healthz")
 def health():
     return {"status":"ok"}, 200
 
- @app.post("/webhook/tradingview")
+@app.post("/webhook/tradingview")
 def tv_webhook():
     # TradingView posts JSON we define in the alert (no official HMAC header)
     # Use a shared secret sent in a header you control.
-    secret = request.headers.get("X-TV-Secret")
+    secret = request.headers.get("X-TV-Secret") or (request.get_json(silent=True) or {}).get("secret")
     if not TV_SECRET or secret != TV_SECRET:
         return jsonify({"error":"unauthorized"}), 401
 
