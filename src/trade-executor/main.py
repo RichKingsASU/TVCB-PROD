@@ -110,3 +110,14 @@ def _reg(rule, view_func, methods=("GET",)):
 _reg("/healthz", lambda: (jsonify(status="ok"), 200))
 _reg("/",        lambda: ("ok", 200))
 # --- end injected health routes ---
+# --- injected /__ready for smoke checks ---
+try:
+    app
+except NameError:
+    from flask import Flask
+    app = Flask(__name__)
+
+@app.get("/__ready")
+def __ready():
+    return "ok", 200, {"content-type": "text/plain"}
+# --- end injected /__ready ---
