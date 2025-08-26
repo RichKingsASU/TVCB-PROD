@@ -1,15 +1,26 @@
-__pycache__/
-*.pyc
-.env
-.venv/
-venv/
-.DS_Store
-.idea/
+# VCS & tooling
+.git
+.gcloudignore
+.github/
 .vscode/
-**/node_modules/
+.idea/
+
+# Python noise
+**/__pycache__/
+**/*.py[cod]
 **/.pytest_cache/
 **/.mypy_cache/
+**/.ruff_cache/
 **/.coverage
-.git
-.gitignore
-.gcloudignore
+
+# Envs & creds
+.env
+.env.*
+.venv/
+venv/
+
+# OS cruft
+.DS_Store
+
+# Node (if any)
+**/node_modules/
