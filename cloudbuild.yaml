@@ -44,6 +44,7 @@ steps:
     --no-allow-unauthenticated
     --service-account ts-executor-sa@$PROJECT_ID.iam.gserviceaccount.com
     --set-env-vars=PROJECT_ID=$PROJECT_ID,TRADING_MODE=PREVIEW
+    --update-secrets=COINBASE_API_KEY=coinbase-name:latest,COINBASE_API_SECRET=coinbase-privatekey:latest
 images:
 - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/webhook-handler:$COMMIT_SHA
 - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/trade-executor:$COMMIT_SHA

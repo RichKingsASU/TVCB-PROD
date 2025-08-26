@@ -1,29 +1,13 @@
-import os, json, subprocess
+import os, json
 from coinbase.rest import RESTClient
-
-def get_secret(secret_name):
-    project = os.environ.get("PROJECT")
-    if not project:
-        print("Error: PROJECT environment variable not set")
-        return None
-    command = [
-        "gcloud", "secrets", "versions", "access", "latest",
-        f"--secret={secret_name}",
-        f"--project={project}"
-    ]
-    try:
-        return subprocess.check_output(command).decode("utf-8").strip()
-    except (subprocess.CalledProcessError, FileNotFoundError) as e:
-        print(f"Error getting secret {secret_name}: {e}")
-        return None
 
 def get_coinbase_client():
     """Creates and returns a Coinbase REST client."""
-    api_key = get_secret("coinbase-name")
-    api_secret = get_secret("coinbase-privatekey")
+    api_key = os.environ.get("COINBASE_API_KEY")
+    api_secret = os.environ.get("COINBASE_API_SECRET")
 
     if not api_key or not api_secret:
-        raise Exception("Could not get Coinbase API credentials from Secret Manager.")
+        raise Exception("COINBASE_API_KEY and COINBASE_API_SECRET environment variables not set.")
 
     return RESTClient(api_key=api_key, api_secret=api_secret)
 
