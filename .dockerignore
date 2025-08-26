@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.env
+.venv/
+venv/
+.DS_Store
+.idea/
+.vscode/
+**/node_modules/
+**/.pytest_cache/
+**/.mypy_cache/
+**/.coverage
+.git
+.gitignore
+.gcloudignore
