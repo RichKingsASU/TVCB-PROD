@@ -4,8 +4,12 @@ substitutions:
 
 steps:
 - name: gcr.io/cloud-builders/docker
-  dir: src/webhook-handler
-  args: ['build','-t','${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/webhook-handler:$COMMIT_SHA','.']
+  args: [
+    'build',
+    '-t','${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/webhook-handler:$COMMIT_SHA',
+    '-f','src/webhook-handler/Dockerfile',
+    '.'
+  ]
 
 - name: gcr.io/cloud-builders/docker
   args: ['push', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/webhook-handler:$COMMIT_SHA']
