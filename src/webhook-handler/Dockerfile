@@ -8,6 +8,8 @@ RUN pip install --no-cache-dir -r requirements.txt -c constraints.txt && pip che
 
 # App code
 COPY src/webhook-handler/ .
+RUN useradd -m appuser
+USER appuser
 
 ENV PORT=8080
-CMD ["gunicorn","-w","2","-b","0.0.0.0:8080","main:app"]
+CMD ["sh","-c","exec gunicorn -w 2 -b :${PORT:-8080},"main:app"]
