@@ -1,3 +1,5 @@
 protobuf>=5.29.3,<7.0.0
 tink==1.11.0
 google-cloud-secret-manager==2.24.0
+
+google-cloud-pubsub==2.21.5
