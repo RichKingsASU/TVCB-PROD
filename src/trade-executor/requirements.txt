@@ -1,6 +1,6 @@
 Flask==3.0.3
 gunicorn==22.0.0
 coinbase-advanced-py==1.8.2
-google-cloud-secret-manager==2.24.0
-tink==1.11.0
-protobuf>=5.29.3,<7.0.0
+google-cloud-secret-manager
+tink
+protobuf
