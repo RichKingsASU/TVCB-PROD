@@ -1,9 +1,11 @@
 __pycache__/
-*.py[cod]
+*.pyc
 .env
 .venv/
-.env.*
-.coverage
-dist/
-build/
+venv/
 .DS_Store
+.idea/
+.vscode/
+
+# Not used on GCP
+src/webhook-handler/Procfile

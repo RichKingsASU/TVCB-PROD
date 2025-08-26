@@ -4,12 +4,21 @@ substitutions:
 
 steps:
 - name: gcr.io/cloud-builders/docker
-  dir: src/webhook-handler
-  args: ['build','-t','${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/webhook-handler:$COMMIT_SHA','.']
+  args: [
+    'build',
+    '-t','${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/webhook-handler:$COMMIT_SHA',
+    '-f','src/webhook-handler/Dockerfile',
+    '.'
+  ]
 
 - name: gcr.io/cloud-builders/docker
-  dir: src/trade-executor
-  args: ['build','-t','${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/trade-executor:$COMMIT_SHA','.']
+  args: ['push', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/webhook-handler:$COMMIT_SHA']
+
+- name: gcr.io/cloud-builders/docker
+  args: ['build','-t','${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/trade-executor:$COMMIT_SHA','-f','src/trade-executor/Dockerfile','.']
+
+- name: gcr.io/cloud-builders/docker
+  args: ['push', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/trade-executor:$COMMIT_SHA']
 
 - name: gcr.io/google.com/cloudsdktool/cloud-sdk
   entrypoint: bash
@@ -35,6 +44,7 @@ steps:
     --no-allow-unauthenticated
     --service-account ts-executor-sa@$PROJECT_ID.iam.gserviceaccount.com
     --set-env-vars=PROJECT_ID=$PROJECT_ID,TRADING_MODE=PREVIEW
+    --set-secrets=COINBASE_API_KEY=coinbase-name:latest,COINBASE_API_SECRET=coinbase-privatekey:latest
 images:
 - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/webhook-handler:$COMMIT_SHA
 - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/trade-executor:$COMMIT_SHA
