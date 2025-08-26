@@ -11,8 +11,7 @@ steps:
   args: ['push', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/webhook-handler:$COMMIT_SHA']
 
 - name: gcr.io/cloud-builders/docker
-  dir: src/trade-executor
-  args: ['build','-t','${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/trade-executor:$COMMIT_SHA','.']
+  args: ['build','-t','${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/trade-executor:$COMMIT_SHA','-f','src/trade-executor/Dockerfile','.']
 
 - name: gcr.io/cloud-builders/docker
   args: ['push', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/trade-executor:$COMMIT_SHA']
