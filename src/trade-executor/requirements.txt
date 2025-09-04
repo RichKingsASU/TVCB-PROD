@@ -1,6 +1,8 @@
 Flask==3.0.3
 gunicorn==22.0.0
 coinbase-advanced-py==1.8.2
+google-cloud-pubsub==2.21.5
+google-cloud-logging==3.11.2
 google-cloud-secret-manager
 tink
 protobuf
