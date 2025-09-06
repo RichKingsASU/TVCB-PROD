@@ -1,4 +1,3 @@
-print("Starting trade-executor application")
 # src/trade-executor/main.py
 import base64, json, logging, os, uuid
 from flask import Flask, request
@@ -23,7 +22,7 @@ def _secret(name:str)->str:
 if not COINBASE_ORG_ID:
     raise ValueError("COINBASE_ORG_ID environment variable not set")
 
-api_key_id = _secret("coinbase-api-key-id")
+api_key_id = _secret("coinbase-name")
 api_key    = f"organizations/{COINBASE_ORG_ID}/apiKeys/{api_key_id}"
 api_secret = _secret("coinbase-api-secret") # Advanced Trade API private key (PEM)
 cb = CoinbaseAdvClient(api_key, api_secret)
@@ -88,10 +87,11 @@ def healthz():
 def readyz():
     try:
         # Check Secret Manager connectivity
-        _secret("coinbase-api-key-id")
+        _secret("coinbase-name")
         # Check Coinbase API connectivity
         cb.get_accounts()
         return {"status": "ok"}, 200
     except Exception as e:
         logging.error(f"Readiness check failed: {e}")
         return {"status": "error", "error": str(e)}, 503
+rn {"status": "error", "error": str(e)}, 503
