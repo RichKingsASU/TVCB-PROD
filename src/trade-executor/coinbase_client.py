@@ -7,6 +7,9 @@ class CoinbaseAdvClient:
         # Works with Advanced Trade API keys (API key id + API private key)
         self.rest = RESTClient(api_key=api_key, api_secret=api_secret, base_url=base_url)
 
+    def get_accounts(self):
+        return self.rest.get_accounts()
+
     def _best_prices(self, product_id:str) -> tuple[float,float]:
         # Use best bid/ask to compute base_size for sells
         book = self.rest.get_best_bid_ask(product_ids=[product_id])
