@@ -31,7 +31,7 @@ steps:
     --allow-unauthenticated
     --service-account ts-webhook-sa@$PROJECT_ID.iam.gserviceaccount.com
     --update-secrets=TV_SECRET=tv-secret:latest
-    --set-env-vars=PROJECT_ID=$PROJECT_ID,TOPIC_NAME=trading-signals
+    --set-env-vars=PROJECT_ID=$PROJECT_ID,PUBSUB_TOPIC=trading-signals
 
 - name: gcr.io/google.com/cloudsdktool/cloud-sdk
   entrypoint: bash
