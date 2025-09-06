@@ -93,5 +93,5 @@ def readyz():
         return {"status": "ok"}, 200
     except Exception as e:
         logging.error(f"Readiness check failed: {e}")
-        return {"status": "error", "error": str(e)}, 503
-rn {"status": "error", "error": str(e)}, 503
+        retu
+
