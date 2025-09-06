@@ -10,15 +10,15 @@ TOPIC_ID = os.environ.get("PUBSUB_TOPIC", "trading-signals")
 if not PROJECT_ID:
     raise RuntimeError("GOOGLE_CLOUD_PROJECT environment variable is required")
 
-publisher = pubsub_v1.PublisherClient()
-topic_path = publisher.topic_path(PROJECT_ID, TOPIC_ID)
-
- @app.get("/")
+@app.get("/")
 def health():
     return {"ok": True}
 
- @app.post("/")
+@app.post("/")
 async def handle_tradingview(request: Request):
+    publisher = pubsub_v1.PublisherClient()
+    topic_path = publisher.topic_path(PROJECT_ID, TOPIC_ID)
+
     # TradingView sends application/json ONLY if the message is valid JSON,
     # otherwise it sends text/plain. We support both. :contentReference[oaicite:0]{index=0}
     ctype = (request.headers.get("content-type") or "").lower()
