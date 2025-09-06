@@ -1,4 +1,3 @@
 fastapi
 uvicorn
-gunicorn
 google-cloud-pubsub==2.21.5
