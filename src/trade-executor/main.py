@@ -1,3 +1,4 @@
+print("Starting trade-executor application")
 # src/trade-executor/main.py
 import base64, json, logging, os, uuid
 from flask import Flask, request
