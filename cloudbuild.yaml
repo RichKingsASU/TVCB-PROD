@@ -1,53 +1,26 @@
 substitutions:
   _REGION: us-central1
-  _REPO: tvcb-prod
+  _AR_REPO: tvcb
 
 steps:
+# Build webhook-handler
 - name: gcr.io/cloud-builders/docker
-  args: [
-    'build',
-    '-t','${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/webhook-handler:$COMMIT_SHA',
-    '-f','src/webhook-handler/Dockerfile',
-    '.'
-  ]
-
+  dir: src/webhook-handler
+  args: ["build","-t","${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/webhook-handler:${SHORT_SHA}","."]
+# Push
 - name: gcr.io/cloud-builders/docker
-  args: ['push', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/webhook-handler:$COMMIT_SHA']
+  args: ["push","${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/webhook-handler:${SHORT_SHA}"]
+# Deploy
+- name: gcr.io/cloud-builders/gcloud
+  args: ["run","deploy","webhook-handler","--image","${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/webhook-handler:${SHORT_SHA}","--region","${_REGION}","--platform","managed"]
 
+# Build trade-executor
 - name: gcr.io/cloud-builders/docker
-  args: ['build','-t','${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/trade-executor:$COMMIT_SHA','-f','src/trade-executor/Dockerfile','.']
-
+  dir: src/trade-executor
+  args: ["build","-t","${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/trade-executor:${SHORT_SHA}","."]
+# Push
 - name: gcr.io/cloud-builders/docker
-  args: ['push', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/trade-executor:$COMMIT_SHA']
-
-- name: gcr.io/google.com/cloudsdktool/cloud-sdk
-  entrypoint: bash
-  args:
-  - -lc
-  - >
-    gcloud run deploy webhook-handler
-    --image ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/webhook-handler:$COMMIT_SHA
-    --region ${_REGION}
-    --allow-unauthenticated
-    --service-account ts-webhook-sa@$PROJECT_ID.iam.gserviceaccount.com
-    --update-secrets=TV_SECRET=tv-secret:latest
-    --set-env-vars=PROJECT_ID=$PROJECT_ID,PUBSUB_TOPIC=trading-signals
-
-- name: gcr.io/google.com/cloudsdktool/cloud-sdk
-  entrypoint: bash
-  args:
-  - -lc
-  - >
-    gcloud run deploy trade-executor
-    --image ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/trade-executor:$COMMIT_SHA
-    --region ${_REGION}
-    --no-allow-unauthenticated
-    --service-account ts-executor-sa@$PROJECT_ID.iam.gserviceaccount.com
-    --set-env-vars=PROJECT_ID=$PROJECT_ID,TRADING_MODE=PREVIEW,COINBASE_ORG_ID=cb7f9643-eff7-40c5-acac-364e929aca44
-    --set-secrets=COINBASE_API_KEY=coinbase-name:latest,COINBASE_API_SECRET=coinbase-privatekey:latest
-images:
-- ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/webhook-handler:$COMMIT_SHA
-- ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/trade-executor:$COMMIT_SHA
-
-options:
-  logging: CLOUD_LOGGING_ONLY
+  args: ["push","${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/trade-executor:${SHORT_SHA}"]
+# Deploy
+- name: gcr.io/cloud-builders/gcloud
+  args: ["run","deploy","trade-executor","--image","${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/trade-executor:${SHORT_SHA}","--region","${_REGION}","--platform","managed"]
