@@ -1,0 +1,38 @@
+{
+  "access": [
+    {
+      "role": "WRITER",
+      "specialGroup": "projectWriters"
+    },
+    {
+      "role": "OWNER",
+      "specialGroup": "projectOwners"
+    },
+    {
+      "role": "OWNER",
+      "userByEmail": "richkingsASU@gmail.com"
+    },
+    {
+      "role": "READER",
+      "specialGroup": "projectReaders"
+    },
+    {
+      "role": "WRITER",
+      "iamMember": "serviceAccount:service-744213536304@gcp-sa-pubsub.iam.gserviceaccount.com"
+    }
+  ],
+  "creationTime": "1757453514169",
+  "datasetReference": {
+    "datasetId": "trading",
+    "projectId": "tvcb-prod"
+  },
+  "description": "Trading alerts (raw)",
+  "etag": "8gJj2Ww+XNxP5Tx9HxGZQw==",
+  "id": "tvcb-prod:trading",
+  "kind": "bigquery#dataset",
+  "lastModifiedTime": "1757453514169",
+  "location": "US",
+  "maxTimeTravelHours": "168",
+  "selfLink": "https://bigquery.googleapis.com/bigquery/v2/projects/tvcb-prod/datasets/trading",
+  "type": "DEFAULT"
+}

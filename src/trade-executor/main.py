@@ -1,11 +1,16 @@
 # src/trade-executor/main.py
 import base64, json, logging, os, uuid
-from flask import Flask, request
+from fastapi import FastAPI, Request, Response, HTTPException
 from google.cloud import secretmanager
+import google.cloud.logging
 from coinbase_client import CoinbaseAdvClient
 
-logging.basicConfig(level=logging.INFO)
-app = Flask(__name__)
+client = google.cloud.logging.Client()
+client.setup_logging()
+
+log = logging.getLogger("trade-executor")
+
+app = FastAPI()
 
 PROJECT_ID = os.environ.get("PROJECT_ID", os.environ.get("GOOGLE_CLOUD_PROJECT"))
 TRADING_MODE = os.environ.get("TRADING_MODE", "PREVIEW").upper()  # PREVIEW or LIVE
@@ -47,7 +52,7 @@ def place_trade(signal:dict):
     else:
         raise ValueError(f"Unsupported action: {action}")
 
-    if order.get("success"):
+    if order and order.get("success"):
         success_response = order.get('success_response')
         logging.info(f"CB ORDER OK: {success_response}")
         order_id = success_response.get('order_id')
@@ -59,29 +64,67 @@ def place_trade(signal:dict):
                 logging.error(f"Failed to verify order {order_id}: {e}")
 
     else:
-        logging.error(f"CB ORDER ERR: {order.get('error_response') or order}")
+        logging.error(f"CB ORDER ERR: {order.get('error_response') if order else 'Order is None'}")
 
-
-@app.route("/pubsub", methods=["POST"])
-def pubsub_push():
-    # A 2xx response ACKs the message; non-2xx triggers retry. Keep fast. :contentReference[oaicite:4]{index=4}
-    envelope = request.get_json(silent=True) or {}
-    msg = envelope.get("message", {})
-    data_b64 = msg.get("data")
-    if not data_b64:
-        return ("no data", 204)
+def _decode_wrapped(body: dict):
+    """Decode Pub/Sub WRAPPED payload -> dict or text."""
     try:
-        payload = json.loads(base64.b64decode(data_b64).decode("utf-8"))
-        place_trade(payload)
-        return ("", 204)  # any 2xx is OK for Pub/Sub ack :contentReference[oaicite:5]{index=5}
+        b64 = body["message"]["data"]
+        data = base64.b64decode(b64 or b"")
+        try:
+            return json.loads(data.decode("utf-8"))
+        except json.JSONDecodeError:
+            return {"text": data.decode("utf-8", errors="replace")}
+    except KeyError as e:
+        raise HTTPException(400, f"Malformed Pub/Sub wrapped body: missing {e}")
+
+
+@app.post("/pubsub")
+async def pubsub(request: Request):
+    raw = await request.body()
+
+    # Try to parse as JSON first
+    event = None
+    try:
+        body = json.loads(raw)
+        # WRAPPED? (default push format)
+        if isinstance(body, dict) and "message" in body and isinstance(body["message"], dict) and "data" in body["message"]:
+            event = _decode_wrapped(body)
+        else:
+            # UNWRAPPED JSON
+            event = body
+    except Exception:
+        # UNWRAPPED non-JSON: treat as text
+        event = {"text": raw.decode("utf-8", errors="replace")}
+
+    # Optional: capture Pub/Sub metadata headers when write-metadata is enabled
+    meta = {
+        "subscription": request.headers.get("x-goog-pubsub-subscription-name"),
+        "message_id": request.headers.get("x-goog-pubsub-message-id"),
+        "publish_time": request.headers.get("x-goog-pubsub-publish-time"),
+        "ordering_key": request.headers.get("x-goog-pubsub-ordering-key"),
+        "content_type": request.headers.get("content-type"),
+    }
+
+    # Structured log (lands in jsonPayload in Cloud Logging)
+    # Requires google-cloud-logging stdlib integration OR you can just log a JSON-string.
+    log.info("PubSub event", extra={"json_fields": {"event": event, "meta": meta}})
+
+    try:
+        place_trade(event)
+    except (ValueError, KeyError) as e:
+        log.error(f"Failed to process event: {e}")
+        raise HTTPException(400, f"Invalid trade signal: {e}")
     except Exception as e:
-        logging.exception("Trade execution failed")
-        # Still 2xx to avoid infinite retries; rely on logs/alerts
-        return ("", 204)
+        log.error(f"An unexpected error occurred: {e}", exc_info=True)
+        raise HTTPException(500, "Internal Server Error")
+
+    # ACK quickly with no body
+    return Response(status_code=204)
 
 @app.get("/healthz")
 def healthz():
-    return {"status": "ok"}, 200
+    return {"status": "ok"}
 
 @app.get("/readyz")
 def readyz():
@@ -90,8 +133,7 @@ def readyz():
         _secret("coinbase-name")
         # Check Coinbase API connectivity
         cb.get_accounts()
-        return {"status": "ok"}, 200
+        return {"status": "ok"}
     except Exception as e:
         logging.error(f"Readiness check failed: {e}")
-        retu
-
+        raise HTTPException(503, "Service Unavailable")

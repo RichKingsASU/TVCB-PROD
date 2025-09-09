@@ -1,6 +1,7 @@
-Flask==3.0.3
-gunicorn==22.0.0
+fastapi
+uvicorn
 coinbase-advanced-py==1.8.2
 google-cloud-secret-manager
 tink
 protobuf
+google-cloud-logging
