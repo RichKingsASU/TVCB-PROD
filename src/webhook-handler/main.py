@@ -17,6 +17,13 @@ def health():
 
 @app.post("/")
 async def handle_tradingview(request: Request):
+    # Verify shared secret
+    shared_secret = os.environ.get("SHARED_SECRET")
+    if shared_secret:
+        request_secret = request.headers.get("X-Shared-Secret")
+        if request_secret != shared_secret:
+            raise HTTPException(status_code=403, detail="Invalid shared secret")
+
     # TradingView sends application/json ONLY if the message is valid JSON,
     # otherwise it sends text/plain. We support both. :contentReference[oaicite:0]{index=0}
     ctype = (request.headers.get("content-type") or "").lower()
