@@ -33,7 +33,16 @@ async def handle_tradingview(request: Request):
 
     # Don't base64-encode manually; the client does it for you. :contentReference[oaicite:1]{index=1}
     data_bytes = json.dumps(payload, separators=(",", ":")).encode("utf-8")
-    future = publisher.publish(topic_path, data=data_bytes)  # returns a Future
+    future = publisher.publish(
+        topic_path,
+        data=data_bytes,
+        source="tradingview",
+        strategy="utbot",
+        action=payload.get("action", ""),
+        timeframe=payload.get("timeframe", ""),
+        symbol=payload.get("symbol", ""),
+        content_type="application/json"
+    )
     msg_id = future.result(timeout=10)
 
     # Return a tiny response so TradingView won’t retry.
