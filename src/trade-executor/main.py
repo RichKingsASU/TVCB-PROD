@@ -1,7 +1,7 @@
 # src/trade-executor/main.py
 import base64, json, logging, os, uuid
 from fastapi import FastAPI, Request, Response, HTTPException
-from google.cloud import secretmanager
+from google.cloud import secretmanager, bigquery
 import google.cloud.logging
 from coinbase_client import CoinbaseAdvClient
 
@@ -110,6 +110,17 @@ async def pubsub(request: Request):
     # Requires google-cloud-logging stdlib integration OR you can just log a JSON-string.
     log.info("PubSub event", extra={"json_fields": {"event": event, "meta": meta}})
 
+    # Idempotency check
+    alert_id = event.get("alert_id")
+    if alert_id:
+        bq_client = bigquery.Client()
+        query = f"""SELECT alert_id FROM `tvcb-prod.trading.seen_alerts` WHERE alert_id = '{alert_id}'"""
+        query_job = bq_client.query(query)
+        results = query_job.result()
+        if results.total_rows > 0:
+            log.info(f"Duplicate alert_id: {alert_id}. Skipping.")
+            return Response(status_code=204)
+
     try:
         place_trade(event)
     except (ValueError, KeyError) as e:
@@ -118,6 +129,15 @@ async def pubsub(request: Request):
     except Exception as e:
         log.error(f"An unexpected error occurred: {e}", exc_info=True)
         raise HTTPException(500, "Internal Server Error")
+
+    # Mark alert as seen
+    if alert_id:
+        rows_to_insert = [{u"alert_id": alert_id}]
+        errors = bq_client.insert_rows_json("tvcb-prod.trading.seen_alerts", rows_to_insert)
+        if errors == []:
+            log.info(f"Inserted alert_id: {alert_id} into seen_alerts table.")
+        else:
+            log.error(f"Encountered errors while inserting rows: {errors}")
 
     # ACK quickly with no body
     return Response(status_code=204)

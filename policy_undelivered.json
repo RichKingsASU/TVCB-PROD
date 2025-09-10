@@ -1,0 +1,21 @@
+{
+  "displayName": "Pub/Sub Undelivered Messages Alert",
+  "combiner": "AND",
+  "conditions": [
+    {
+      "displayName": "Pub/Sub Subscription has undelivered messages",
+      "conditionThreshold": {
+        "filter": "metric.type=\"pubsub.googleapis.com/subscription/num_undelivered_messages\" resource.type=\"pubsub_subscription\" resource.label.\"subscription_id\"=\"signals-to-bq\"",
+        "comparison": "COMPARISON_GT",
+        "thresholdValue": 10,
+        "duration": "60s",
+        "trigger": {
+          "count": 1
+        }
+      }
+    }
+  ],
+  "notificationChannels": [
+    "projects/tvcb-prod/notificationChannels/12717422390245816361"
+  ]
+}
