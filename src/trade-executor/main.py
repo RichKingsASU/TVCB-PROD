@@ -40,6 +40,7 @@ def place_trade(signal:dict):
     symbol = signal["symbol"]
     action = signal["action"].lower()
     product_id = to_product_id(symbol)
+    logging.info(f"Converted symbol {symbol} to product_id {product_id}")
     usd = float(signal.get("funds", USD_PER_TRADE))  # default $1/trade
     live = (TRADING_MODE == "LIVE")
     logging.info(f"Executing {action} ${usd} on {product_id} (mode={TRADING_MODE})")
