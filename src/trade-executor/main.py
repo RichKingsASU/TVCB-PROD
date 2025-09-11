@@ -27,7 +27,7 @@ def _secret(name:str)->str:
 if not COINBASE_ORG_ID:
     raise ValueError("COINBASE_ORG_ID environment variable not set")
 
-api_key_id = _secret("coinbase-name")
+api_key_id = _secret("coinbase-org-id")
 api_key    = f"organizations/{COINBASE_ORG_ID}/apiKeys/{api_key_id}"
 api_secret = _secret("coinbase-api-secret") # Advanced Trade API private key (PEM)
 cb = CoinbaseAdvClient(api_key, api_secret)
@@ -151,7 +151,7 @@ def healthz():
 def readyz():
     try:
         # Check Secret Manager connectivity
-        _secret("coinbase-name")
+        _secret("coinbase-org-id")
         # Check Coinbase API connectivity
         cb.get_accounts()
         return {"status": "ok"}

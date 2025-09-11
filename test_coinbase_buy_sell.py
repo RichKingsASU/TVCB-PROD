@@ -12,9 +12,9 @@ def _secret(name:str)->str:
 # Fill these from your Coinbase Advanced API key (org-based)
 ORG_ID = "organizations/cb7f9643-eff7-40c5-acac-364e929aca44"
 KEY_ID = _secret("coinbase-name")
-PRIVATE_KEY_PEM = _secret("coinbase-api-secret")
+API_SECRET = _secret("coinbase-api-secret")
 
-client = RESTClient(api_key=f"{ORG_ID}/apiKeys/{KEY_ID}", private_key=PRIVATE_KEY_PEM)
+client = RESTClient(api_key=f"{ORG_ID}/apiKeys/{KEY_ID}", api_secret=API_SECRET)
 
 # 1) list a product to confirm auth & connectivity
 products = client.get_products(limit=1)
@@ -30,19 +30,23 @@ resp = client.create_order(
 )
 print("buy_resp", resp)
 
-order_id = resp.get("success_response", {}).get("order_id")
+order_id = resp.success_response['order_id']
 time.sleep(2)
 
 # 3) fetch recent fills to confirm execution
-fills = client.list_fills(product_id="SOL-USD", limit=10)
+fills = client.get_fills(product_id="SOL-USD", limit=10)
 print("fills", fills)
 
 # 4) (optional) place a tiny market SELL for ~$1 notional if you hold SOL
+book = client.get_best_bid_ask(product_ids=["SOL-USD"])
+best_bid = float(book["pricebooks"][0]["bids"][0]["price"])
+base_size = 1 / best_bid
+
 client_order_id = str(uuid.uuid4())
 sell = client.create_order(
     client_order_id=client_order_id,
     product_id="SOL-USD",
     side="SELL",
-    order_configuration={"market_market_ioc":{"quote_size":"1.00"}}
+    order_configuration={"market_market_ioc":{"base_size": f"{base_size:.6f}"}}
 )
 print("sell_resp", sell)
