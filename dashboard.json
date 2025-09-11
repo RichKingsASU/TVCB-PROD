@@ -1,0 +1,31 @@
+{
+  "displayName": "Pub/Sub Backlog",
+  "gridLayout": {
+    "widgets": [
+      {
+        "title": "Unacked Messages",
+        "xyChart": {
+          "dataSets": [
+            {
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"pubsub.googleapis.com/subscription/num_unacked_messages_by_region\" resource.type=\"pubsub_subscription\" resource.label.\"subscription_id\"=\"signals-to-bq\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_MEAN"
+                  }
+                }
+              },
+              "plotType": "LINE"
+            }
+          ],
+          "timeshiftDuration": "0s",
+          "yAxis": {
+            "label": "",
+            "scale": "LINEAR"
+          }
+        }
+      }
+    ]
+  }
+}

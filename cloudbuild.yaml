@@ -1,0 +1,28 @@
+substitutions:
+  _REGION: us-central1
+  _AR_REPO: tvcb
+  _SHORT_SHA: 'g1234567'
+
+steps:
+# Build webhook-handler
+- name: gcr.io/cloud-builders/docker
+  args: ["build", "-t", "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/webhook-handler:${_SHORT_SHA}", "-f", "src/webhook-handler/Dockerfile", "."]
+# Push
+- name: gcr.io/cloud-builders/docker
+  args: ["push","${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/webhook-handler:${_SHORT_SHA}"]
+# Deploy
+- name: gcr.io/cloud-builders/gcloud
+  args: ["run","deploy","webhook-handler","--image","${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/webhook-handler:${_SHORT_SHA}","--region","${_REGION}","--platform","managed"]
+
+# Build trade-executor
+- name: gcr.io/cloud-builders/docker
+  args: ["build", "-t", "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/trade-executor:${_SHORT_SHA}", "-f", "src/trade-executor/Dockerfile", "."]
+# Push
+- name: gcr.io/cloud-builders/docker
+  args: ["push","${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/trade-executor:${_SHORT_SHA}"]
+# Deploy
+- name: gcr.io/cloud-builders/gcloud
+  args: ["run","deploy","trade-executor","--image","${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/trade-executor:${_SHORT_SHA}","--region","${_REGION}","--platform","managed"]
+
+options:
+  logging: CLOUD_LOGGING_ONLY

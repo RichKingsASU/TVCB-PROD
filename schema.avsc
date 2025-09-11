@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "name": "TradingSignal",
+  "fields": [
+    { "name": "alert_id", "type": "string" },
+    { "name": "symbol", "type": "string" },
+    { "name": "exchange", "type": "string" },
+    { "name": "timeframe", "type": "string" },
+    { "name": "indicator", "type": "string" },
+    { "name": "action", "type": "string" },
+    { "name": "price", "type": "double" },
+    { "name": "ts", "type": "string" }
+  ]
+}
